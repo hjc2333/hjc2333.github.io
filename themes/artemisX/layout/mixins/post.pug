@@ -1,0 +1,107 @@
+mixin postInfo(item)
+    .post-info
+        a
+        != full_date(item.date, config.date_format)
+        if item.from && (is_home() || is_post())
+            a.post-from(href=item.from, target='_blank', title=item.from)
+                != __('translate_original')
+
+mixin postTitle(title)
+    if title
+        != title
+    else
+        != __('untitled')
+
+//- Index Page
+mixin posts()
+    ul.home.post-list
+        - page.posts.each(function (item) {
+            li.post-list-item
+                article.post-block
+                    h2.post-title
+                        a.post-title-link(href=url_for(item.path))
+                            +postTitle(item.title)
+                    p.post-info
+                        i(class='fa fa-calendar') &nbsp;
+                        != full_date(item.date, config.date_format)
+                        | &nbsp;| 
+                        i(class='fa fa-tags') &nbsp;
+                        +tags(item)
+                        | &nbsp;| 
+                        i(class='fa fa-folder-o') &nbsp;
+                        +categories(item)
+                    .post-content
+                        != item.excerpt
+                    a.read-more(href=url_for(item.path))
+                        != __('read_more')
+        - })
+
+//- Archive Page
+mixin postList()
+    .archive
+        - var year = 0;
+        - var change = false;
+        - page.posts.each(function (item) {
+            - var itemYear = date(item.date, 'YYYY') - 0;
+            - change = year !== itemYear;
+            - year = change ? itemYear : year;
+            if change
+                h2.archive-year
+                    != year
+            .post-item
+                +postInfo(item)
+                a.post-title-link(href=url_for(item.path))
+                    +postTitle(item.title)
+        - })
+
+//- Post Page
+mixin post(item)
+    .post
+        article.post-block
+            h1.post-title
+                +postTitle(item.title)
+            p.post-info
+                i(class='fa fa-calendar') &nbsp;
+                != full_date(item.date, config.date_format)
+                | &nbsp;| 
+                i(class='fa fa-tags') &nbsp;
+                +tags(item)
+                | &nbsp;| 
+                i(class='fa fa-folder-o') &nbsp;
+                +categories(item)
+            .post-content
+                != item.content
+
+//- Tags Page
+mixin tagList()
+    .tag-list
+        i(class='fa fa-tags') &nbsp;
+        if site.tags && site.tags.length
+            - site.tags.each(function (tag) {
+                p.tag-info
+                    a.post-title-link(href=url_for(tag.path))=tag.name
+            - })
+
+//- Post tags
+mixin tags(item)
+    if item.tags && item.tags.length
+        - item.tags.each(function (tag) {
+            a.post-tag-link(href=url_for(tag.path))
+                != tag.name
+                | &nbsp;·&nbsp;
+        - })
+    else
+        a.post-category-link(href=url_for(theme.GitHub)) #{'coder'}
+
+//- Post categories
+mixin categories(item)
+    if item.categories && item.categories.length
+        - item.categories.each(function (category) {
+            a.post-category-link(href=url_for(category.path))
+                != category.name
+                | &nbsp;/&nbsp;
+        - })
+    else
+        a.post-category-link(href=url_for(theme.copyright.url)) #{'Full Stand developer'}
+
+    

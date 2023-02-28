@@ -1,0 +1,12 @@
+extends partial/layout.pug
+
+block site_title
+    != page.title + ' | ' + config.title
+
+block container
+    include mixins/post.pug
+    h1.page_about
+        | About me
+
+block copyright
+    include partial/copyright.pug

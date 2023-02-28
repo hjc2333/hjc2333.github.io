@@ -1,0 +1,11 @@
+extends partial/layout.pug
+
+block site_title
+    != page.title + ' | ' + config.title
+
+block container
+    include mixins/post.pug
+    +tagList()
+
+block copyright
+    include partial/copyright.pug

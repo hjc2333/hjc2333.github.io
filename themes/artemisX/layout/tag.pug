@@ -1,0 +1,18 @@
+extends partial/layout.pug
+
+block site_title
+    != 'tag-' + page.tag + ' | ' + config.title
+
+block container
+    h1.page_tag
+        i(class='fa fa-tag') &nbsp;
+        != page.tag
+    include mixins/post.pug
+    +postList()
+
+block pagination
+    include mixins/paginator.pug
+    +home()
+
+block copyright
+    include partial/copyright.pug
