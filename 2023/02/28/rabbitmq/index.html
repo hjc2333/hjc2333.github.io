@@ -1,0 +1,111 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><title> | Hexo</title><meta name="description" content=" - John Doe"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/css/theme.css"><link rel="search" type="application/opensearchdescription+xml" href="/atom.xml" title="Hexo"><link rel="stylesheet" href="/css/font-awesome.min.css"><meta name="generator" content="Hexo 6.3.0"></head><body><div class="wrap"><header><h1 class="branding"><a href="/" title="Hexo"><img class="logo-image" src="/favicon.ico" alt="logo"></a></h1><ul class="nav nav-list"><li class="nav-list-item"><!--a.nav-list-link(class={active: act} href=url_for(value), target=tar)--><a class="nav-list-link" href="/" target="_self">首页</a></li><li class="nav-list-item"><!--a.nav-list-link(class={active: act} href=url_for(value), target=tar)--><a class="nav-list-link" href="/archives" target="_self">归档</a></li><li class="nav-list-item"><!--a.nav-list-link(class={active: act} href=url_for(value), target=tar)--><a class="nav-list-link" href="/tags" target="_self">标签</a></li><li class="nav-list-item"><!--a.nav-list-link(class={active: act} href=url_for(value), target=tar)--><a class="nav-list-link" href="/about" target="_self">关于</a></li></ul></header><main class="container"><div class="post"><article class="post-block"><h1 class="post-title">(untitled)</h1><p class="post-info"><i class="fa fa-calendar">&nbsp;</i>2023-02-28&nbsp;| <i class="fa fa-tags">&nbsp;</i><a class="post-category-link" target="_blank" rel="noopener" href="https://github.com/wwwuxt">coder</a>&nbsp;| <i class="fa fa-folder-o">&nbsp;</i><a class="post-category-link" target="_blank" rel="noopener" href="http://wwwuxt.cc">Full Stand developer</a></p><div class="post-content"><h1 id="RabbitMQ"><a href="#RabbitMQ" class="headerlink" title="RabbitMQ"></a>RabbitMQ</h1><h3 id="exchange"><a href="#exchange" class="headerlink" title="exchange"></a>exchange</h3><ul>
+<li><p>Direct Exchange</p>
+<p>根据queue绑定exchange时的routing key 与消息的routing key进行匹配，把消息路由到routing key 一致的队列，再从每个队列中轮询消费者进行负载均衡，每个队列找出一个消费者进行消费消息。</p>
+</li>
+<li><p>Topic Exchange</p>
+<p>消息发送到Topic Exchange 时所带的routing key  必须是一连串用<code>.</code>分割的词表（例如“stock.usd.nyse”；限制在255字节内）。</p>
+<p>队列绑定topic exchange 有两种重要的特殊的key：</p>
+<ul>
+<li><code>*</code> 星号只能呢个匹配一个词。</li>
+<li><code>#</code>能匹配0个或者多个词。</li>
+</ul>
+</li>
+<li><p>Fanout Exchange</p>
+<p>将消息路由到交换机上的每个队列，再从每个队列中轮询消费者进行负载均衡，每个队列找出一个消费者进行消费消息。</p>
+</li>
+<li><p>Headers Exchange</p>
+<p>与Topic Exchange 相似，但使用header而不是routing key 进行匹配。队列可以使用多个header去绑定交换机，其中<code>x-match</code>绑定参数可以决定匹配消息的一个header还是多个。</p>
+<p><code>x-match</code>属性有两个可能的值：<code>any</code> 与 <code>all</code>,其中<code>all</code>是省略值。如果值为<code>all</code>表明队列绑定中所有header 都要匹配消息的header；如果值为 <code>any</code>表示至少有一对键值对匹配。</p>
+<blockquote>
+<p>如果队列绑定时，header的键值对中值为null，则只需消息有对应的键即可，不关心值是否也为null。</p>
+</blockquote>
+<p>下面的示例中，<code>test1Queue</code>也会收到消息</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean(&quot;binding1&quot;)</span></span><br><span class="line">Binding <span class="title function_">binding</span><span class="params">(<span class="meta">@Qualifier(&quot;test1Queue&quot;)</span> Queue testQueue,<span class="meta">@Qualifier(&quot;test1Exchange&quot;)</span> HeadersExchange exchange)</span> &#123;</span><br><span class="line">    Map&lt;String,Object&gt; map  = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">    map.put(<span class="string">&quot;test&quot;</span>,<span class="literal">null</span>);</span><br><span class="line">    map.put(<span class="string">&quot;1&quot;</span>,<span class="literal">null</span>);</span><br><span class="line">    <span class="keyword">return</span> BindingBuilder.bind(testQueue).to(exchange).whereAll(map).match();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Test</span></span><br><span class="line">    <span class="keyword">void</span> <span class="title function_">contextLoads</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="type">MessageProperties</span> <span class="variable">messageProperties</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">MessageProperties</span>();</span><br><span class="line">        messageProperties.setHeader(<span class="string">&quot;test&quot;</span>, <span class="string">&quot;1&quot;</span>);</span><br><span class="line">        messageProperties.setHeader(<span class="string">&quot;1&quot;</span>,<span class="string">&quot;abc&quot;</span>);</span><br><span class="line">        messageProperties.setHeader(<span class="string">&quot;test1213&quot;</span>,<span class="string">&quot;2&quot;</span>);</span><br><span class="line">        <span class="type">MessageConverter</span> <span class="variable">messageConverter</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">SimpleMessageConverter</span>();</span><br><span class="line">        <span class="type">Message</span> <span class="variable">message</span> <span class="operator">=</span> messageConverter.toMessage(<span class="string">&quot;hello world&quot;</span>, messageProperties);</span><br><span class="line">        rabbitTemplate.send(<span class="string">&quot;test1Exchange&quot;</span>,<span class="string">&quot;&quot;</span>, message);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h3 id="Message"><a href="#Message" class="headerlink" title="Message"></a>Message</h3><p>消息的持久化需要三个方面配合才能实现MQ节点重启也不会丢失消息。</p>
+<ol>
+<li>队列的durable属性为true。</li>
+<li>exchange的durable熟悉为true。</li>
+<li>消息发送时配置deliveryMod 为 persistent</li>
+</ol>
+<blockquote>
+<p>消息持久化会影响性能。</p>
+</blockquote>
+<h3 id="Transactions"><a href="#Transactions" class="headerlink" title="Transactions"></a>Transactions</h3><p>在spring  Rabbit 框架支持自动事务管理同步与异步用例，且有两种方式声明需要事务。在 <code>RabbitTemplate</code>与 <code>SimpleMessageListenerContainer</code>这两者中，都有一个<code>channelTransacted</code> 的标识符，当设置为<code>true</code>时就会使用 事务 channel 来提交或回滚发送或接收的操作。</p>
+<p>一般来说，<code>channelTransacted</code>这个标识符应该在创建 AMQP 组件时声明，更常见的应该是应用启动时声明。不过在实际上，当事务被分层声明在应用程序中，标识符也是常作为一个配置设定。</p>
+<ul>
+<li>对于使用 <code>RabbitTemplate</code>的同步用例，外部事务通常由调用方根据不同情况（通常是Spring 事务模型）来提供。例子：</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Transactional</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">doSomething</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">incoming</span> <span class="operator">=</span> rabbitTemplate.receiveAndConvert();</span><br><span class="line">    <span class="comment">// do some more database processing...</span></span><br><span class="line">    <span class="type">String</span> <span class="variable">outgoing</span> <span class="operator">=</span> processInDatabaseAndExtractReply(incoming);</span><br><span class="line">    rabbitTemplate.convertAndSend(outgoing);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面的例子在一个用<code>@Transactional</code>的注解方法里面，接收一个字符串载荷，经过数据处理转化为一个消息的body来发送。如果数据处理产生异常，那接收的消息会返回给中间件，并且消息也不会发送。</p>
+<ul>
+<li><p>对于使用 <code>SimpleMessageListenerContainer</code>的异步用例来说，外部事务只有在该容器设置监听器时才有被设置的可能。如果需要外部事务，用户需要在该容器配置时提供 <code>PlatformTransactionManager</code>的实现。下面例子：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ExampleExternalTransactionAmqpConfiguration</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> SimpleMessageListenerContainer <span class="title function_">messageListenerContainer</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="type">SimpleMessageListenerContainer</span> <span class="variable">container</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">SimpleMessageListenerContainer</span>();</span><br><span class="line">        container.setConnectionFactory(rabbitConnectionFactory());</span><br><span class="line">        container.setTransactionManager(transactionManager());</span><br><span class="line">        container.setChannelTransacted(<span class="literal">true</span>);</span><br><span class="line">        container.setQueueName(<span class="string">&quot;some.queue&quot;</span>);</span><br><span class="line">        container.setMessageListener(exampleListener());</span><br><span class="line">        <span class="keyword">return</span> container;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面的例子中，事务管理器被作为一个依赖注入添加。并且<code>channelTransacted</code>的标识符被设置为 <code>true</code>。这样设置就可以导致，当监听器失败产生异常时，事务会被回滚并且返回中间件中。还有当外部事务提交失败时，AMQP的事务也会回滚，消息会返回中间件。如果 <code>channelTransacted</code> 标识符设置为 <code>false</code> ，上面例子中外部事务依然会提供给监听器，但所有的消息操作都是自动应答，导致即使发生了回滚，消息操作一样被提交。</p>
+</li>
+</ul>
+</div></article></div><div class="article"><hr><h2>版权声明</h2>| 文章作者：<a target="_blank" rel="noopener" href="http://wwwuxt.cc">wwwuxt</a><br>| 文章链接：<a href="http://example.com/2023/02/28/rabbitmq/">http://example.com/2023/02/28/rabbitmq/</a><br>| 许可协议：<a target="_blank" rel="noopener" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">知识共享署名-非商业性使用-相同方式共享 4.0 国际许可协议</a><hr></div></main><footer><div class="paginator"><a class="prev" href="/2023/02/28/hello-world/"><!--!= __('< PREV_POST')-->< Hello World</a></div><div class="clearfix"></div><div class="copyright"><p id="host_by"> <a href="/atom.xml"><i class="fa fa-rss"></i></a><span id="busuanzi_container_site_pv">&nbsp;<i class="fa fa-eye">&nbsp;</i><span id="busuanzi_value_site_pv"><i class="fa fa-spinner"></i></span> times, </span><span id="busanzi_container_site_uv">&nbsp;<i class="fa fa-user">&nbsp;</i><span id="busuanzi_value_site_uv"><i class="fa fa-spinner"></i></span> times.</span><br> &copy; 2017 - 2023 <a target="_blank" rel="noopener" href="http://wwwuxt.cc">wwwuxt</a>. 
+ Powered by <a href="https://hexo.io/" target="_blank">Hexo</a> &amp; <a href="https://github.com/wwwuxt/hexo-theme-artemisX" target="_blank">ArtemisX</a>.<br></p><script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></footer></div><script>var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-108353521-1']);
+_gaq.push(['_trackPageview']);
+
+(function () {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})();
+console.log('Google Analytics')
+</script><script>(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https'){
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else{
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+    console.log('wwwuxt.cc')
+})();
+</script><script>(function(){
+    var req = GetXmlHttpObject()  
+    if (req == null) {  
+        console.log("not support AJAX!");  
+        return;  
+    }
+    req.onreadystatechange = function() {  
+        if (req.readyState === 4 && req.status === 200) {  
+            var deploy_server = req.getResponseHeader("Server");
+            console.log(deploy_server)
+            if(deploy_server === 'Coding Pages'){
+                document.getElementById('host_by').innerHTML+='Hosted by <a target="_blank" rel="noopener" href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>.'
+            }
+            else if(deploy_server === 'GitHub.com'){
+                document.getElementById('host_by').innerHTML+='Hosted by <a target="_blank" rel="noopener" href="https://pages.github.com" style="font-weight: bold">GitHub Pages</a>.'
+            }
+            else{
+                document.getElementById('host_by').innerHTML+='Hosted by <a href="#" style="font-weight: bold">'+ deploy_server + '</a>.'
+            }
+        }  
+    };  
+    req.open('GET', document.location, true);
+    req.send(null);
+})();
+function GetXmlHttpObject() {  
+    var xmlHttp = null;  
+    try {  
+        // Firefox, Opera 8.0+, Safari  
+        xmlHttp = new XMLHttpRequest();  
+    } catch (e) {  
+        // Internet Explorer  
+        try {  
+            xmlHttp = new ActiveXObject("Msxml2.XMLHTTP");  
+        } catch (e) {  
+            xmlHttp = new ActiveXObject("Microsoft.XMLHTTP");  
+        }  
+    }  
+    return xmlHttp;  
+}  </script></body></html>
