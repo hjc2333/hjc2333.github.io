@@ -3,17 +3,17 @@
 ## Source: https://github.com/hexojs/hexo/
 
 # Site
-title: Hexo
+title: 笔记
 subtitle: ''
-description: ''
+description: '个人笔记'
 keywords:
-author: John Doe
+author: hjc
 language: en
 timezone: ''
 
 # URL
 ## Set your site url here. For example, if you use GitHub Page, set url as 'https://username.github.io/project'
-url: http://example.com
+url: https://hjc2333.github.io
 permalink: :year/:month/:day/:title/
 permalink_defaults:
 pretty_urls:
@@ -105,3 +105,12 @@ deploy:
   type: git
   repo: git@github.com:hjc2333/hjc2333.github.io.git
   branch: gh-pages
+
+# hexo-admin authentification
+admin:
+  username: hjc
+  password_hash: $2a$10$J/tJUYcuT5N2LDyZ9X2pmuJYbwOWEacr8JVbAxemmgxikFh3I4Xza
+  secret: asdsafeqqcqqewqdas
+metadata:
+  author_id: hjc
+  language:  
